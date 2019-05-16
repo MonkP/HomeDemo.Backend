@@ -1,1 +1,0 @@
-namespace coreMVCproject1.Services{}
