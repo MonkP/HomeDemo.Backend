@@ -4,12 +4,11 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using coreMVCproject1.Models;
-using coreMVCproject1.Utils;
+using HomeDemo.Backend.Common;
 using Microsoft.AspNetCore.Http;
-using coreMVCproject1.Models.Dto;
+using HomeProject.Backend.Models.Dto;
 
-namespace coreMVCproject1.Controllers
+namespace HomeDemo.Backend.Server.Controllers
 {
     public class LoginController : Controller
     {
@@ -22,7 +21,7 @@ namespace coreMVCproject1.Controllers
         public JsonResult ValidateLogin(string userName, string pwd)
         {
             //密码先解码成原始密文
-            pwd = CommonUtils.Base64Decode(pwd);
+            pwd = StringUtils.Base64Decode(pwd);
             // TODO 
             //假装匹配密码
 

@@ -1,6 +1,6 @@
 using System;
 
-namespace HomeProject.Backend.Models
+namespace HomeProject.Backend.Models.Dto
 {
     public class ErrorViewModel
     {

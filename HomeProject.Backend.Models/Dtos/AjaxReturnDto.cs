@@ -1,5 +1,5 @@
 using System;
-namespace coreMVCproject1.Models.Dto
+namespace HomeProject.Backend.Models.Dto
 {
     public class AjaxReturnDto<T>
     {
@@ -13,7 +13,7 @@ namespace coreMVCproject1.Models.Dto
             msg = message;
         }
     }
-    public class AjaxReturnDto
+    public class AjaxMessageDto
     {
         public bool success{get;set;}
         public string msg{get;set;}
