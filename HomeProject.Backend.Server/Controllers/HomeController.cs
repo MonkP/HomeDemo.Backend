@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using HomeProject.Backend.Models.Dto;
+using HomeProject.Backend.Models.Dtos;
 
 namespace HomeDemo.Backend.Server.Controllers
 {

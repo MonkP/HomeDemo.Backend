@@ -6,3 +6,26 @@
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
 </div>
+<div class="text-center">
+    <button id="btnTest" class="btn btn-primary">测试登录</button>
+</div>
+@section PageScripts{
+    <script type="text/javascript">
+        $(function () {
+            $("#btnTest").click(function (e) {
+                $.ajax({
+                    type: "post",
+                    url: "/Login/ValidateLogin",
+                    data: {
+                        userName: "laos",
+                        pwd: "MQ=="
+                    },
+                    async: true,
+                    success: function (result) {
+                        console.log("login success");
+                    }
+                })
+            });
+        });
+    </script>
+}
