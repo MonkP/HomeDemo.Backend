@@ -4,9 +4,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using HomeProject.Backend.Models.Dtos;
+using HomeProject.Backend.Models.Dto;
 
-namespace HomeDemo.Backend.Server.Controllers
+namespace HomeProject.Backend.Server.Controllers
 {
     public class HomeController : Controller
     {

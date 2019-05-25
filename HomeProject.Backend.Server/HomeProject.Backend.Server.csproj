@@ -13,7 +13,8 @@
 
 
   <ItemGroup>
-    <ProjectReference Include="..\HomeDemo.Backend.Common\HomeDemo.Backend.Common.csproj" />
+    <ProjectReference Include="..\HomeDemo.Backend.Common\HomeProject.Backend.Common.csproj" />
+    <ProjectReference Include="..\HomeProject.Backend.DAL\HomeProject.Backend.DAL.csproj" />
     <ProjectReference Include="..\HomeProject.Backend.Models\HomeProject.Backend.Models.csproj" />
   </ItemGroup>
 

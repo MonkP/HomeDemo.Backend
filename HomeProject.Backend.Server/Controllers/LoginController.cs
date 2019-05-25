@@ -4,14 +4,16 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using HomeDemo.Backend.Common;
+using HomeProject.Backend.Common;
 using Microsoft.AspNetCore.Http;
 using HomeProject.Backend.Models.Dto;
+using HomeProject.Backend.DAL;
 
-namespace HomeDemo.Backend.Server.Controllers
+namespace HomeProject.Backend.Server.Controllers
 {
-    public class LoginController : Controller
+    public class LoginController : BaseController
     {
+        UserService service = new UserService();
         /// <summary>
         /// 登录校验方法
         /// </summary>
@@ -22,18 +24,27 @@ namespace HomeDemo.Backend.Server.Controllers
         {
             //密码先解码成原始密文
             pwd = StringUtils.Base64Decode(pwd);
-            // TODO 
-            //假装匹配密码
 
-            //初始化Session
-            HttpContext.Session.SetString("userName", userName);
-
-            //返回登录成功结果
-            return Json(new AjaxMessageDto
+            var matchedUser = service.GetMatchedUser(userName, pwd);
+            if (matchedUser != null)
             {
-                success = true,
-                msg = "登录成功"
-            });
+                //初始化Session
+                SetObjectToSession("UserInfo", matchedUser);
+                //返回登录成功结果
+                return Json(new AjaxMessageDto
+                {
+                    success = true,
+                    msg = "登录成功"
+                });
+            }
+            else
+            {
+                return Json(new AjaxMessageDto
+                {
+                    success = false,
+                    msg = "用户名或密码错误"
+                });
+            }
         }
     }
 }

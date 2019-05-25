@@ -1,7 +1,7 @@
 ﻿using System;
 
 using System.Text;
-namespace HomeDemo.Backend.Common
+namespace HomeProject.Backend.Common
 {
     public class StringUtils
     {
