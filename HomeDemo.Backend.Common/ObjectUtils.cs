@@ -14,11 +14,21 @@ namespace HomeProject.Backend.Common
         /// </summary> 
         /// <param name="obj">能序列化的对象</param>         
         /// <returns></returns> 
-        public static byte[] ObjectToBytes(object obj)
+        public static byte[] ObjectToBytes<T>(T obj)
         {
-            using (MemoryStream ms = new MemoryStream())
+        //检查传入的对象类是否有【Serializable】属性
+        System.Reflection.MemberInfo info = typeof(T);
+            SerializableAttribute serializableAttribute = (SerializableAttribute)Attribute.GetCustomAttribute(info, typeof(SerializableAttribute));
+            if (serializableAttribute != null)
             {
-                IFormatter formatter = new BinaryFormatter(); formatter.Serialize(ms, obj); return ms.GetBuffer();
+                using (MemoryStream ms = new MemoryStream())
+                {
+                    IFormatter formatter = new BinaryFormatter(); formatter.Serialize(ms, obj); return ms.GetBuffer();
+                }
+            }
+            else
+            {
+                return null;
             }
         }
 

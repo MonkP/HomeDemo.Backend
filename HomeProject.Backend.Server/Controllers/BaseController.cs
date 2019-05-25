@@ -15,7 +15,7 @@ namespace HomeProject.Backend.Server.Controllers
         /// </summary>
         /// <param name="key">Session KEY</param>
         /// <param name="obj">要加入Session的对象</param>
-        protected virtual void SetObjectToSession(string key,object obj)
+        protected virtual void SetObjectToSession<T>(string key,T obj)
         {
             var objBytes = ObjectUtils.ObjectToBytes(obj);
             HttpContext.Session.Set(key, objBytes);
