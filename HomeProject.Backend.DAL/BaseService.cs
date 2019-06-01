@@ -1,11 +1,13 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using NLog;
 using Microsoft.EntityFrameworkCore.Sqlite;
 using Microsoft.EntityFrameworkCore.Extensions;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Text;
 using System.Transactions;
 
@@ -14,6 +16,8 @@ namespace HomeProject.Backend.DAL
     public class BaseService<T> where T : class, new()
     {
         public DbContext db = EFContextFactory.GetCurrentDbContext();
+
+        private static readonly Logger Logger = LogManager.GetLogger("BaseService");
         #region 查询方法
         /// <summary>
         /// 单体查询
@@ -26,7 +30,11 @@ namespace HomeProject.Backend.DAL
         }
         public virtual bool Exist(Expression<Func<T, bool>> whereExp)
         {
-            return db.Set<T>().Count(whereExp) != 0;
+            return db.Set<T>().Any(whereExp);
+        }
+        public virtual int Count(Expression<Func<T, bool>> whereExp)
+        {
+            return db.Set<T>().Count(whereExp);
         }
         /// <summary>
         /// 普通批量查询
@@ -108,6 +116,105 @@ namespace HomeProject.Backend.DAL
         }
         #endregion
 
+        #region 更新与删除方法
+        /// <summary>
+        /// 更新单一实体
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="async">是否挂起更新。如为true，则在调用SaveChange时才保存到数据库</param>
+        /// <returns></returns>
+        public virtual bool UpdateEntity(T entity,bool async=false)
+        {
+            db.Set<T>().Attach(entity);
+            db.Entry<T>(entity).State = EntityState.Modified;
+            return async ? true : db.SaveChanges() != 0;
+        }
+        /// <summary>
+        /// 批量更新实体
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <param name="async">是否挂起更新。如为true，则在调用SaveChange时才保存到数据库</param>
+        /// <returns></returns>
+        public virtual int UpdateEntities(IEnumerable<T> entities, bool async = false)
+        {
+            foreach (var entity in entities)
+            {
+                db.Set<T>().Attach(entity);
+                db.Entry<T>(entity).State = EntityState.Modified;
+            }
+            return async ? entities.Count() : db.SaveChanges();
+        }
+        /// <summary>
+        /// 删除实体
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="async">是否挂起更新。如为true，则在调用SaveChange时才保存到数据库</param>
+        /// <returns></returns>
+        public virtual bool DeleteEntity(T entity, bool async = false)
+        {
+            db.Set<T>().Attach(entity);
+            db.Entry<T>(entity).State = EntityState.Deleted;
+            return async ? true : db.SaveChanges() != 0;
+        }
+        /// <summary>
+        /// 删除实体集合
+        /// </summary>
+        /// <param name="entities"></param>
+        /// <param name="async">是否挂起更新。如为true，则在调用SaveChange时才保存到数据库</param>
+        /// <returns></returns>
+        public virtual int DeleteEntities(IEnumerable<T> entities, bool async = false)
+        {
+            foreach(var entity in entities)
+            {
+                db.Set<T>().Attach(entity);
+                db.Entry<T>(entity).State = EntityState.Deleted;
+            }
+            return async ? entities.Count(): db.SaveChanges();
+        }
+        /// <summary>
+        /// 批量删除实体
+        /// </summary>
+        /// <param name="whereLambda">条件表达式</param>
+        /// <param name="async">是否挂起更新。如为true，则在调用SaveChange时才保存到数据库</param>
+        /// <returns></returns>
+        public virtual int DeleteRange(Expression<Func<T, bool>> whereLambda,bool async = false)
+        {
+            var entities = db.Set<T>().Where(whereLambda);
+            foreach (var entity in entities)
+            {
+                db.Set<T>().Attach(entity);
+                db.Entry<T>(entity).State = EntityState.Deleted;
+            }
+            return async ? entities.Count() : db.SaveChanges();
+
+        }
+
+        /// <summary>
+        /// 通过id数组进行删除
+        /// </summary>
+        /// <param name="ids"></param>
+        /// <returns></returns>
+        public virtual int DeleteRange(IEnumerable<int> ids, bool async = false)
+        {
+            foreach (var item in ids)
+            {
+                var entity = db.Set<T>().Find(item);
+                db.Entry<T>(entity).State = EntityState.Deleted;
+            }
+            return async ? ids.Count() : db.SaveChanges();
+        }
+
+        /// <summary>
+        /// 提交修改项
+        /// </summary>
+        /// <returns></returns>
+        public int SaveChanges()
+        {
+            return db.SaveChanges();
+            //return await db.SaveChangesAsync();
+        }
+        #endregion
+
         #region Raw SQL 操作
         /// <summary>
         /// 执行查询语句
@@ -141,6 +248,39 @@ namespace HomeProject.Backend.DAL
         }
 
         #endregion
+
+        #region 事务方法
+
+        /// <summary>
+        /// 启用事务
+        /// </summary>
+        /// <returns></returns>
+
+        public TransactionScope BeginTransaction()
+        {
+            TransactionScope scope = new TransactionScope();
+            return scope;
+        }
+
+        /// <summary>
+        /// 提交事务
+        /// </summary>
+        /// <param name="scope"></param>
+        public void CommitTransaction(TransactionScope scope)
+        {
+            scope.Complete();
+        }
+
+        /// <summary>
+        /// 注销事务
+        /// </summary>
+        /// <param name="scope"></param>
+        public void EndTransaction(TransactionScope scope)
+        {
+            scope.Dispose();
+        }
+
+        #endregion
         /// <summary>
         /// 字段赋值方法
         /// </summary>
@@ -158,6 +298,27 @@ namespace HomeProject.Backend.DAL
                 Type type = Nullable.GetUnderlyingType(propertyInfo.PropertyType) ?? propertyInfo.PropertyType;
                 propertyInfo.SetValue(obj, (val == null) ? null : Convert.ChangeType(val, type), null);
             }
+        }
+
+        public void LogError(Exception ex, string errMsg = "")
+        {
+            var strError = new StringBuilder();
+            strError.AppendFormat("Message:{0}", ex.Message);
+            strError.AppendLine();
+            strError.AppendFormat("Srouce:{0}", ex.Source);
+            strError.AppendLine();
+            strError.AppendFormat("StackTrace:{0}", ex.StackTrace);
+            strError.AppendLine();
+            strError.AppendFormat("Data:{0}", ex.Data);
+            strError.AppendLine();
+            if (!string.IsNullOrEmpty(errMsg))
+            {
+                strError.AppendFormat("输出消息:{0}", errMsg);
+                strError.AppendLine();
+            }
+
+            strError.AppendLine("=============================================================");
+            Logger.Error(strError.ToString());
         }
     }
 }
