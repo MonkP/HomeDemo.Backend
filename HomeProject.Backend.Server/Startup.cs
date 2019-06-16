@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using HomeProject.Backend.Models.DB;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using HomeProject.Backend.Common.ConfigModels;
 
 namespace HomeProject.Backend
 {
@@ -31,6 +32,7 @@ namespace HomeProject.Backend
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
+            services.AddMemoryCache();
             //为Session配置使用缓存
             services.AddDistributedMemoryCache();
             //配置Session
@@ -47,6 +49,10 @@ namespace HomeProject.Backend
 
             //初始化数据库连接
             services.AddDbContext<HomeDbContext>();
+            //初始化AppSettings.json读取
+            services.AddOptions();
+            //读取EMailSettings
+            services.Configure<ConfigModel>(Configuration.GetSection("ConfigModel"));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
