@@ -18,6 +18,38 @@ namespace HomeProject.Backend.DAL
         public DbContext db = EFContextFactory.GetCurrentDbContext();
 
         private static readonly Logger Logger = LogManager.GetLogger("BaseService");
+        #region 新增方法
+        /// <summary>
+        /// 将单一实体保存到数据库
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <param name="async"></param>
+        /// <returns></returns>
+        public virtual T AddEntity(T entity,bool async = false)
+        {
+            db.Entry<T>(entity).State = EntityState.Added;
+            if (!async)
+            {
+                db.SaveChanges();
+            }
+            return entity;
+        }
+        public virtual int AddRange(IEnumerable<T> entities,bool async = false)
+        {
+            int toReturn = 0;
+            foreach(var entity in entities)
+            {
+                db.Entry<T>(entity).State = EntityState.Added;
+                toReturn++;
+            }
+            if (!async)
+            {
+                db.SaveChanges();
+            }
+            return toReturn;
+        }
+        #endregion
+
         #region 查询方法
         /// <summary>
         /// 单体查询
